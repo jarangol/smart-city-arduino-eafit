@@ -20,12 +20,12 @@
 #define CNY4 32 //Infrared sensor 4 in traffic light 2 connected in pin 32
 #define CNY5 31 //Infrared sensor 5 in traffic light 2 connected in pin 31
 #define CNY6 30 //Infrared sensor 6 in traffic light 2 connected in pin 30
-#define LR1 22 //Red traffic light 1 connected in pin 22
-#define LY1 23 //Yellow traffic light 1 connected in pin 23
-#define LG1 24 //Green traffic light 1 connected in pin 24
-#define LR2 25 //Red traffic light 2 connected in pin 25
-#define LG2 27 //Green traffic light 2 connected in pin 27
-#define LY2 26 //Yellow traffic light 2 connected in pin 26
+#define LRC 22 //Red traffic light 1 connected in pin 22
+#define LAC 23 //Yellow traffic light 1 connected in pin 23
+#define LVC 24 //Green traffic light 1 connected in pin 24
+#define LRT 25 //Red traffic light 2 connected in pin 25
+#define LVT 27 //Green traffic light 2 connected in pin 27
+#define LAT 26 //Yellow traffic light 2 connected in pin 26
 
 
 //Constant definitions
@@ -66,32 +66,32 @@ void testAnalogSenAct(char in) {
     case 'D':
       Serial.println("Testing Traffic Light 1");
       Serial.println("Turning ON LR1");
-      digitalWrite(LR1, HIGH);
+      digitalWrite(LRC, HIGH);
       delay(1000);
-      digitalWrite(LR1, LOW);
+      digitalWrite(LRC, LOW);
       Serial.println("Turning ON LY1");
-      digitalWrite(LY1, HIGH);
+      digitalWrite(LAC, HIGH);
       delay(1000);
-      digitalWrite(LY1, LOW);
+      digitalWrite(LAC, LOW);
       Serial.println("Turning ON LG1");
-      digitalWrite(LG1, HIGH);
+      digitalWrite(LVC, HIGH);
       delay(1000);
-      digitalWrite(LG1, LOW);
+      digitalWrite(LVC, LOW);
       break;
     case 'E':
       Serial.println("Testing Traffic Light 2");
       Serial.println("Turning ON LR2");
-      digitalWrite(LR2, HIGH);
+      digitalWrite(LRT, HIGH);
       delay(1000);
-      digitalWrite(LR2, LOW);
+      digitalWrite(LRT, LOW);
       Serial.println("Turning ON LY2");
-      digitalWrite(LY2, HIGH);
+      digitalWrite(LAT, HIGH);
       delay(1000);
-      digitalWrite(LY2, LOW);
+      digitalWrite(LAT, LOW);
       Serial.println("Turning ON LG2");
-      digitalWrite(LG2, HIGH);
+      digitalWrite(LVT, HIGH);
       delay(1000);
-      digitalWrite(LG2, LOW);
+      digitalWrite(LVT, LOW);
       break;
     case 'F':
       Serial.println("Testing LCD, check display");
@@ -161,6 +161,85 @@ void checkDigitalIn() { //Subroutine to check all digital inputs
    }
 }
 
+
+
+
+/////////////////////////////////////////////////// MEF SM1
+#define VERDE 0
+#define AMARILLO 1
+#define ROJO 2
+
+const unsigned long tvc = 10000, tac = 3000;
+
+int eSemaforo1 = VERDE;
+bool CA = 0, TA = 0;
+unsigned long trc = 0;
+
+void MEF_SM1() {
+  switch (eSemaforo1) {
+    case VERDE:
+      digitalWrite(LVC, HIGH);
+      digitalWrite(LRC, LOW);
+      if ( (millis() - trc >= tvc)) {
+        eSemaforo1 = AMARILLO;
+        trc = millis();
+      }
+      break;
+    case AMARILLO:
+      digitalWrite(LVC, LOW);
+      digitalWrite(LAC, HIGH);
+      if ( (millis() - trc >= tac)) {
+        eSemaforo1 = ROJO;
+        TA = 1;
+      }
+      break;
+    case ROJO:
+      digitalWrite(LAC, LOW);
+      digitalWrite(LRC, HIGH);
+      if (CA) {
+        CA = 0;
+        eSemaforo1 = VERDE;
+        trc = millis();
+      }
+  }
+}
+
+
+/////////////////////////////////////////////////// MEF SM2
+const unsigned long tvt = 5000, tat = 3000;
+
+int eSemaforo2 = ROJO;
+unsigned long trt = 0;
+void MEF_SM2() {
+  switch (eSemaforo2) {
+    case VERDE:
+      digitalWrite(LRT, LOW);
+      digitalWrite(LVT, HIGH);
+      if ( (millis() - trt >= tvt)) {
+        eSemaforo2 = AMARILLO;
+        trt = millis();
+      }
+      break;
+    case AMARILLO:
+      digitalWrite(LVT, LOW);
+      digitalWrite(LAT, HIGH);
+      if ( (millis() - trt >= tat)) {
+        CA = 1;
+        eSemaforo2 = ROJO;
+      }
+      break;
+    case ROJO:
+      digitalWrite(LAT, LOW);
+      digitalWrite(LRT, HIGH);
+      if (TA) {
+        TA = 0;
+        eSemaforo2 = VERDE;
+        trt = millis();
+      }
+  }
+}
+
+
 //Configuration
 void setup() {
   //Pin config
@@ -172,35 +251,35 @@ void setup() {
   pinMode(CNY4, INPUT); //Infrared sensor 4 in traffic light 2 as Input
   pinMode(CNY5, INPUT); //Infrared sensor 5 in traffic light 2 as Input
   pinMode(CNY6, INPUT); //Infrared sensor 6 in traffic light 2 as Input
-  pinMode(LR1, OUTPUT); //Red traffic light 1 as Output
-  pinMode(LY1, OUTPUT); //Yellow traffic light 1 as Output
-  pinMode(LG1, OUTPUT); //Green traffic light 1 as Output
-  pinMode(LR2, OUTPUT); //Red traffic light 2 as Output
-  pinMode(LY2, OUTPUT); //Yellow traffic light 2 as Output
-  pinMode(LG2, OUTPUT); //Green traffic light 2 as Output
+  pinMode(LRC, OUTPUT); //Red traffic light 1 as Output
+  pinMode(LAC, OUTPUT); //Yellow traffic light 1 as Output
+  pinMode(LVC, OUTPUT); //Green traffic light 1 as Output
+  pinMode(LRT, OUTPUT); //Red traffic light 2 as Output
+  pinMode(LAT, OUTPUT); //Yellow traffic light 2 as Output
+  pinMode(LVT, OUTPUT); //Green traffic light 2 as Output
 
   //Output cleaning
-  digitalWrite(LR1, LOW); //Turn Off Red traffic light 1
-  digitalWrite(LY1, LOW); //Turn Off Yellow traffic light 1
-  digitalWrite(LG1, LOW); //Turn Off Green traffic light 1
-  digitalWrite(LR2, LOW); //Turn Off Red traffic light 2
-  digitalWrite(LY2, LOW); //Turn Off Yellow traffic light 2
-  digitalWrite(LG2, LOW); //Turn Off Green traffic light 2
+  digitalWrite(LRC, LOW); //Turn Off Red traffic light 1
+  digitalWrite(LAC, LOW); //Turn Off Yellow traffic light 1
+  digitalWrite(LVC, LOW); //Turn Off Green traffic light 1
+  digitalWrite(LRT, LOW); //Turn Off Red traffic light 2
+  digitalWrite(LAT, LOW); //Turn Off Yellow traffic light 2
+  digitalWrite(LVT, LOW); //Turn Off Green traffic light 2
 
   //Communications
   Serial.begin(9600); //Start Serial communications with computer via Serial0 (TX0 RX0) at 9600 bauds
-  lcd.begin();  //Start communications with LCD display
-  lcd.backlight();  //Turn on LCD backlight
-  Serial.println("In order to test Analog Sensors and Actuators, send the following commands through the Serial Monitor:");
-  Serial.println("A: Tests LDR1 Sensor");
-  Serial.println("B: Tests LDR2 Sensor");
-  Serial.println("C: Test CO2 Sensor");
-  Serial.println("D: Tests Traffic Light 1 (LR1, LY1 and LG1)");
-  Serial.println("E: Tests Traffic Light 2 (LR2, LY2 and LG2)");
-  Serial.println("F: Tests LCD");
+  // lcd.begin();  //Start communications with LCD display
+  // lcd.backlight();  //Turn on LCD backlight
+  // Serial.println("In order to test Analog Sensors and Actuators, send the following commands through the Serial Monitor:");
+  // Serial.println("A: Tests LDR1 Sensor");
+  // Serial.println("B: Tests LDR2 Sensor");
+  // Serial.println("C: Test CO2 Sensor");
+  // Serial.println("D: Tests Traffic Light 1 (LR1, LY1 and LG1)");
+  // Serial.println("E: Tests Traffic Light 2 (LR2, LY2 and LG2)");
+  // Serial.println("F: Tests LCD");
 }
 
 void loop() {
-  readComm(); //Wait for command from Serial to test
-  checkDigitalIn(); //Check if any digital input is activated
+  MEF_SM1();
+  MEF_SM2();
 }
