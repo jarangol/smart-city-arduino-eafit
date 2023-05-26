@@ -31,8 +31,8 @@
 //->CO2
 const float DC_GAIN = 8.5; // define the DC gain of amplifier CO2 sensor
 // const float ZERO_POINT_VOLTAGE = 0.4329; //define the output of the sensor in volts when the concentration of CO2 is 400PPM
-const float ZERO_POINT_VOLTAGE = 0.265;                                                  // define the output of the sensor in volts when the concentration of CO2 is 400PPM
-const float REACTION_VOLTAGE = 0.059;                                                    // define the “voltage drop” of the sensor when move the sensor from air into 1000ppm CO2
+const float ZERO_POINT_VOLTAGE = 0.220;                                                  // define the output of the sensor in volts when the concentration of CO2 is 400PPM
+const float REACTION_VOLTAGE = 0.030;                                                    // define the “voltage drop” of the sensor when move the sensor from air into 1000ppm CO2
 const float CO2Curve[3] = {2.602, ZERO_POINT_VOLTAGE, (REACTION_VOLTAGE / (2.602 - 3))}; // Line curve with 2 points
 
 // Variable definitions
@@ -56,7 +56,6 @@ void calculateCo2()
 
 int getLDR1()
 {
-  Serial.println(analogRead(LDR1));
   return analogRead(LDR1);
 }
 
@@ -103,7 +102,6 @@ void checkDigitalIn()
   }
   if (digitalRead(P2) == HIGH)
   {
-    Serial.println("P2: ON");
     delay(300); // Debouncing for buttons using delay of 300 ms
     while (digitalRead(P2) == HIGH)
     {
@@ -178,7 +176,7 @@ const unsigned long tvt = 5000, tat = 3000, LDR_MIN = 300, PTIME = 1000;
 
 int eSemaforo1 = VERDE, eSemaforo2 = ROJO;
 ;
-bool CA = 0, TA = 0;
+bool CA = 0, TA = 0, P = 0;
 unsigned long trc = 0, trt = 0;
 
 /////////////////////////////////////////////////// FUNCIONES SM1
@@ -236,6 +234,18 @@ void apagarSemaforo2()
   digitalWrite(LVT, LOW);
   digitalWrite(LRT, LOW);
 }
+
+void parpadeo1() {
+  eSemaforo1 = POFF;
+  P = 1;
+  trc = millis();
+}
+
+void parpadeo2() {
+  eSemaforo2 = POFF;
+  P = 1;
+  trt = millis();
+}
 /////////////////////////////////////////////////// FUNCIONES
 
 void MEF_SM1()
@@ -245,44 +255,35 @@ void MEF_SM1()
   case VERDE:
     pintarSemaforo1Verde();
 
-    if (getLDR1() < LDR_MIN)
-    {
-      eSemaforo1 = POFF;
-      trc = millis();
-    }
-    else if ((millis() - trc > tvc))
-    {
+    if (getLDR1() < LDR_MIN || P) {
+      parpadeo1();
+    } else if (digitalRead(P1) == HIGH) {
+      moverSemaforo1Amarillo();
+    } else if ((millis() - trc > tvc)) {
       moverSemaforo1Amarillo();
     }
 
     break;
   case AMARILLO:
     pintarSemaforo1Amarillo();
-    if (getLDR1() < LDR_MIN && (millis() - trc > PTIME))
-    {
-      eSemaforo1 = POFF;
-      trc = millis();
-    }
-    else if ((millis() - trc > tac))
-    {
-      moverSemaforo1Rojo();
+    if (((getLDR1() < LDR_MIN) || P) && (millis() - trc > PTIME)) {
+      parpadeo1();
+    } else if ((millis() - trc > tac)) {
+      if (P) {
+        TA = 0;
+        P = 0;
+      } else {
+        TA = 1;
+      }
+
+      eSemaforo1 = ROJO;
     }
     break;
   case ROJO:
     pintarSemaforo1Rojo();
-    if (digitalRead(P1) == HIGH)
-    {
-      CA = 1;
-      eSemaforo2 = ROJO;
-    }
-
-    if (getLDR1() < LDR_MIN)
-    {
-      eSemaforo1 = POFF;
-      trc = millis();
-    }
-    else if (CA)
-    {
+    if (getLDR1() < LDR_MIN || P) {
+      parpadeo1();
+    } else if (CA) {
       moverSemaforo1Verde();
     }
     break;
@@ -308,27 +309,25 @@ void MEF_SM2()
     digitalWrite(LAT, LOW);
     digitalWrite(LVT, HIGH);
 
-    if (getLDR2() < LDR_MIN)
+    if (getLDR2() < LDR_MIN || P)
     {
-      eSemaforo2 = POFF;
-    }
-    else if ((millis() - trt >= tvt))
+      parpadeo2();
+    } else if (digitalRead(P2) == HIGH)
     {
       eSemaforo2 = AMARILLO;
+      trt = millis();
+    } else if ((millis() - trt >= tvt)) {
+      eSemaforo2 = AMARILLO;
+      trt = millis();
     }
-    trt = millis();
     break;
   case AMARILLO:
     digitalWrite(LVT, LOW);
     digitalWrite(LRT, LOW);
     digitalWrite(LAT, HIGH);
-    if (getLDR2() < LDR_MIN && (millis() - trt > PTIME))
-    {
-      eSemaforo2 = POFF;
-      trt = millis();
-    }
-    else if ((millis() - trt >= tat))
-    {
+    if (((getLDR2() < LDR_MIN) || P) && (millis() - trt > PTIME)) {
+      parpadeo2();
+    } else if ((millis() - trt >= tat)) {
       CA = 1;
       eSemaforo2 = ROJO;
     }
@@ -338,19 +337,9 @@ void MEF_SM2()
     digitalWrite(LVT, LOW);
     digitalWrite(LRT, HIGH);
 
-    if (getLDR2() < LDR_MIN)
-    {
-      eSemaforo2 = POFF;
-      trt = millis();
-    }
-    else if (digitalRead(P2) == HIGH)
-    {
-      TA = 1;
-      eSemaforo1 = ROJO;
-    }
-
-    if (TA)
-    {
+    if (getLDR2() < LDR_MIN || P) {
+      parpadeo2();
+    } else if (TA) {
       TA = 0;
       eSemaforo2 = VERDE;
       trt = millis();
@@ -358,10 +347,11 @@ void MEF_SM2()
     break;
   case POFF:
     apagarSemaforo2();
-    if (millis() - trt >= PTIME)
+    if (millis() - trt >= PTIME )
     {
       eSemaforo2 = AMARILLO;
       trt = millis();
+      P = 0;
     }
 
     break;
@@ -412,4 +402,7 @@ void loop()
 {
   MEF_SM1();
   MEF_SM2();
+    // Serial.println('a');
+  // Serial.println('t');
+  // Serial.println('w');
 }
