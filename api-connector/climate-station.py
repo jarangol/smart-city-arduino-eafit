@@ -3,19 +3,21 @@ import requests
 from tweet import post_tuit
 
 # Establish serial connection
-ser = serial.Serial('COM1', 9600)  # Replace 'COM1' with the appropriate serial port
+# Replace 'COM1' with the appropriate serial port
+ser = serial.Serial('/dev/tty.usbmodem14101', 9600)
 
 # Loop to continuously receive data
 while True:
-    data = ser.readline().decode().strip()  # Read data from the serial port and decode it
+    # Read data from the serial port and decode it
+    data = ser.readline().decode().strip()
 
-    if data == 'ta':  # High traffic on Street A
+    if data == 'a':  # High traffic on Street A
         print("High traffic on Street A")
         post_tuit("High traffic on Street A")
-    elif data == 'tt':  # High traffic in tunnel
+    elif data == 't':  # High traffic in tunnel
         print("High traffic in tunnel")
         post_tuit("High traffic in tunnel")
-    elif data == 'gw':  # Get weather
+    elif data == 'w':  # Get weather
         print("Getting weather data...")
 
         # Call OpenWeatherMap API
