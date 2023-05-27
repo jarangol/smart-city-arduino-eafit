@@ -90,39 +90,45 @@ void readComm()
   }
 }
 
-
-int getNSEC1() {
-  if (digitalRead(CNY3) == LOW && digitalRead(CNY2) == LOW && digitalRead(CNY1) == LOW) {
+int getNSEC1()
+{
+  if (digitalRead(CNY3) == LOW && digitalRead(CNY2) == LOW && digitalRead(CNY1) == LOW)
+  {
     return 3;
   }
 
-  if (digitalRead(CNY3) == LOW && digitalRead(CNY2) == LOW) {
+  if (digitalRead(CNY3) == LOW && digitalRead(CNY2) == LOW)
+  {
     return 2;
   }
 
-  if (digitalRead(CNY3) == LOW) {
+  if (digitalRead(CNY3) == LOW)
+  {
     return 1;
   }
 
   return 0;
 }
 
-int getNSEC2() {
-  if (digitalRead(CNY6) == LOW && digitalRead(CNY5) == LOW && digitalRead(CNY4) == LOW) {
+int getNSEC2()
+{
+  if (digitalRead(CNY6) == LOW && digitalRead(CNY5) == LOW && digitalRead(CNY4) == LOW)
+  {
     return 3;
   }
 
-  if (digitalRead(CNY6) == LOW && digitalRead(CNY5) == LOW) {
+  if (digitalRead(CNY6) == LOW && digitalRead(CNY5) == LOW)
+  {
     return 2;
   }
 
-  if (digitalRead(CNY6) == LOW) {
+  if (digitalRead(CNY6) == LOW)
+  {
     return 1;
   }
 
   return 0;
 }
-
 
 void checkDigitalIn()
 { // Subroutine to check all digital inputs
@@ -206,11 +212,10 @@ void checkDigitalIn()
 #define POFF 3
 
 const unsigned long LDR_MIN = 300, PTIME = 1000;
-unsigned long trc = 0, trt = 0,tvc = 5000, tac = 3000, tvt = 5000, tat = 3000, TBVC = tvc, TBVT = tvt;
+unsigned long trc = 0, trt = 0, tvc = 5000, tac = 3000, tvt = 5000, tat = 3000, TBVC = tvc, TBVT = tvt;
 
 int eSemaforo1 = VERDE, eSemaforo2 = ROJO;
 bool CA = 0, TA = 0, P = 0;
-
 
 /////////////////////////////////////////////////// FUNCIONES SM1
 
@@ -268,13 +273,15 @@ void apagarSemaforo2()
   digitalWrite(LRT, LOW);
 }
 
-void parpadeo1() {
+void parpadeo1()
+{
   eSemaforo1 = POFF;
   P = 1;
   trc = millis();
 }
 
-void parpadeo2() {
+void parpadeo2()
+{
   eSemaforo2 = POFF;
   P = 1;
   trt = millis();
@@ -288,35 +295,49 @@ void MEF_SM1()
   case VERDE:
     pintarSemaforo1Verde();
 
-    if (getLDR1() < LDR_MIN || P) {
+    if (getLDR1() < LDR_MIN || P)
+    {
       parpadeo1();
-    } else if (digitalRead(P1) == HIGH) {
+    }
+    else if (digitalRead(P1) == HIGH)
+    {
       moverSemaforo1Amarillo();
-    } else if ((millis() - trc > tvc)) {
+    }
+    else if ((millis() - trc > tvc))
+    {
       moverSemaforo1Amarillo();
     }
 
     break;
   case AMARILLO:
     pintarSemaforo1Amarillo();
-    if (getLDR1() < LDR_MIN || P) {
+    if (getLDR1() < LDR_MIN || P)
+    {
       parpadeo1();
-    } else if ((millis() - trc > tac)) {
-        TA = 1;
-        eSemaforo1 = ROJO;
+    }
+    else if ((millis() - trc > tac))
+    {
+      TA = 1;
+      eSemaforo1 = ROJO;
     }
     break;
   case ROJO:
     pintarSemaforo1Rojo();
-    if (((getLDR1() < LDR_MIN) || P) && (millis() - trc > PTIME)) {
+    if (((getLDR1() < LDR_MIN) || P) && (millis() - trc > PTIME))
+    {
       parpadeo1();
-    } else if (CA) {
+    }
+    else if (CA)
+    {
       int NSEC = getNSEC1();
-      if (NSEC >= 2) {
+      if (NSEC >= 2)
+      {
         tvc = NSEC * TBVC;
         Serial.println("Alto trafico calle");
         Serial.println("a");
-      } else {
+      }
+      else
+      {
         tvc = TBVC;
       }
       moverSemaforo1Verde();
@@ -347,11 +368,14 @@ void MEF_SM2()
     if (getLDR2() < LDR_MIN || P)
     {
       parpadeo2();
-    } else if (digitalRead(P2) == HIGH)
+    }
+    else if (digitalRead(P2) == HIGH)
     {
       eSemaforo2 = AMARILLO;
       trt = millis();
-    } else if ((millis() - trt >= tvt)) {
+    }
+    else if ((millis() - trt >= tvt))
+    {
       eSemaforo2 = AMARILLO;
       trt = millis();
     }
@@ -360,9 +384,12 @@ void MEF_SM2()
     digitalWrite(LVT, LOW);
     digitalWrite(LRT, LOW);
     digitalWrite(LAT, HIGH);
-    if (((getLDR2() < LDR_MIN) || P) && (millis() - trt > PTIME)) {
+    if (((getLDR2() < LDR_MIN) || P) && (millis() - trt > PTIME))
+    {
       parpadeo2();
-    } else if ((millis() - trt >= tat)) {
+    }
+    else if ((millis() - trt >= tat))
+    {
       CA = 1;
       eSemaforo2 = ROJO;
     }
@@ -372,15 +399,21 @@ void MEF_SM2()
     digitalWrite(LVT, LOW);
     digitalWrite(LRT, HIGH);
 
-    if (getLDR2() < LDR_MIN || P) {
+    if (getLDR2() < LDR_MIN || P)
+    {
       parpadeo2();
-    } else if (TA) {
+    }
+    else if (TA)
+    {
       int NSET = getNSEC2();
-      if (NSET >= 2) {
+      if (NSET >= 2)
+      {
         tvt = NSET * TBVT;
         Serial.println("Alto trafico tunel");
         Serial.println("t");
-      } else {
+      }
+      else
+      {
         tvt = TBVT;
       }
       TA = 0;
@@ -390,13 +423,45 @@ void MEF_SM2()
     break;
   case POFF:
     apagarSemaforo2();
-    if (millis() - trt >= PTIME )
+    if (millis() - trt >= PTIME)
     {
       eSemaforo2 = AMARILLO;
       trt = millis();
       P = 0;
     }
 
+    break;
+  }
+}
+///// MEF CLIMA
+
+#define GET_CLIMA 0
+#define WAIT_CLIMA 1
+int eClima = GET_CLIMA;
+unsigned long trcl = 0;
+String temp;
+
+void MEF_CLIMA()
+{
+  switch (eClima)
+  {
+  case GET_CLIMA:
+    Serial.println("w");
+    delay(100);
+    temp = ""; // Clear the string for the new data
+    while (Serial.available())
+    {
+      temp += (char)Serial.read(); // Concatinate each charageter onto                                   // the String Object
+    }
+    printInLCDLine1("Temperatura: " + temp);
+    eClima = WAIT_CLIMA;
+    trcl = millis();
+    break;
+  case WAIT_CLIMA:
+    if (millis() - trcl > 10000)
+    {
+      eClima = GET_CLIMA;
+    }
     break;
   }
 }
@@ -430,25 +495,13 @@ void setup()
 
   // Communications
   Serial.begin(9600); // Start Serial communications with computer via Serial0 (TX0 RX0) at 9600 bauds
-  lcd.begin();  //Start communications with LCD display
-  lcd.backlight();  //Turn on LCD backlight
-  // Serial.println("In order to test Analog Sensors and Actuators, send the following commands through the Serial Monitor:");
-  // Serial.println("A: Tests LDR1 Sensor");
-  // Serial.println("B: Tests LDR2 Sensor");
-  // Serial.println("C: Test CO2 Sensor");
-  // Serial.println("D: Tests Traffic Light 1 (LR1, LY1 and LG1)");
-  // Serial.println("E: Tests Traffic Light 2 (LR2, LY2 and LG2)");
-  // Serial.println("F: Tests LCD");
-  // printInLCDLine1("HOLA");
-  // printInLCDLine2("COMO ESTA");
+  lcd.begin();        // Start communications with LCD display
+  lcd.backlight();    // Turn on LCD backlight
 }
 
 void loop()
 {
   MEF_SM1();
   MEF_SM2();
-  
-    // Serial.println('a');
-  // Serial.println('t');
-  // Serial.println('w');
+  MEF_CLIMA();
 }

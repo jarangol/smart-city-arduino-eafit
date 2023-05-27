@@ -33,12 +33,13 @@ while True:
             response = requests.get(url, params=params)
             response.raise_for_status()  # Check for any request errors
             weather_data = response.json()  # Process weather data as needed
-            print("Weather data:", weather_data)
+            temp = str(weather_data["main"]["temp"])
+            ser.write(temp.encode())
         except requests.exceptions.RequestException as e:
             print("Failed to retrieve weather data:", e)
     else:
         # Invalid data received
-        print("Invalid data received:", data)
+        print(data)
 
 # Close the serial connection (unreachable in this infinite loop)
 ser.close()
