@@ -5,7 +5,7 @@ from datetime import datetime
 
 # Establish serial connection
 # Replace 'COM1' with the appropriate serial port
-ser = serial.Serial('/dev/tty.usbmodem14101', 9600)
+ser = serial.Serial('/dev/tty.usbmodem14301', 9600)
 
 # Loop to continuously receive data
 while True:
@@ -14,6 +14,8 @@ while True:
 
     if data == 'a':  # High traffic on Street A
         print("High traffic on Street A")
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
         post_tuit(f"{dt_string} High traffic on Street A")
     elif data == 't':  # High traffic in tunnel
         print("High traffic in tunnel")

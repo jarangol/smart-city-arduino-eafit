@@ -31,8 +31,8 @@
 //->CO2
 const float DC_GAIN = 8.5; // define the DC gain of amplifier CO2 sensor
 // const float ZERO_POINT_VOLTAGE = 0.4329; //define the output of the sensor in volts when the concentration of CO2 is 400PPM
-const float ZERO_POINT_VOLTAGE = 0.220;                                                  // define the output of the sensor in volts when the concentration of CO2 is 400PPM
-const float REACTION_VOLTAGE = 0.030;                                                    // define the “voltage drop” of the sensor when move the sensor from air into 1000ppm CO2
+const float ZERO_POINT_VOLTAGE = 0.265;                                                  // define the output of the sensor in volts when the concentration of CO2 is 400PPM
+const float REACTION_VOLTAGE = 0.059;                                                    // define the “voltage drop” of the sensor when move the sensor from air into 1000ppm CO2
 const float CO2Curve[3] = {2.602, ZERO_POINT_VOLTAGE, (REACTION_VOLTAGE / (2.602 - 3))}; // Line curve with 2 points
 
 // Variable definitions
@@ -340,7 +340,8 @@ void MEF_SM2()
       calculateCo2();
       line2 = "Co2: " + String(co2);
       printInLCDLine();
-      if (co2 > 1000) {
+      Serial.println(line2);
+      if (co2 > 800) {
         line4 = "Alto CO2 en tunel";
         Serial.println(line4);
         printInLCDLine();
@@ -394,6 +395,7 @@ void MEF_CLIMA()
     }
     
     printInLCDLine();
+    Serial.println(line1);
     eClima = WAIT_CLIMA;
     trcl = millis();
     break;
@@ -437,6 +439,10 @@ void setup()
   Serial.begin(9600); // Start Serial communications with computer via Serial0 (TX0 RX0) at 9600 bauds
   lcd.begin();        // Start communications with LCD display
   lcd.backlight();    // Turn on LCD backlight
+  calculateCo2();
+  line2 = "Co2: " + String(co2);
+  printInLCDLine();
+  Serial.println(line2);
 }
 
 void loop()
