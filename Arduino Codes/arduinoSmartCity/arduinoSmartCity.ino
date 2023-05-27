@@ -64,30 +64,23 @@ int getLDR2()
   return analogRead(LDR2);
 }
 
-void printInLCDLine1(String a)
-{
-  lcd.setCursor(0, 0);
-  lcd.print(a);
-}
-
-void printInLCDLine2(String a)
-{
-  lcd.setCursor(0, 1);
-  lcd.print(a);
-}
-
-void clearLCD()
+String line1 = "", line2 = "", line3 = "", line4 = "";
+void printInLCDLine()
 {
   lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(line1);
+  lcd.setCursor(0, 1);
+  lcd.print(line2);
+  lcd.setCursor(0, 2);
+  lcd.print(line3);
+  lcd.setCursor(0, 3);
+  lcd.print(line4);
 }
 
-void readComm()
-{
-  if (Serial.available() > 0)
-  {
-    comm = Serial.read();
-    comm = '\0';
-  }
+void clearLCDLine(int line) {
+  lcd.setCursor(0,line);
+  lcd.print(" ");
 }
 
 int getNSEC1()
@@ -258,11 +251,15 @@ void MEF_SM1()
       if (NSEC >= 2)
       {
         tvc = NSEC * TBVC;
-        Serial.println("Alto trafico calle");
+        line3 = "Alto trafico calle";
+        Serial.println(line3);
         Serial.println("a");
+        printInLCDLine();
       }
       else
       {
+        line3 = "";
+        printInLCDLine();
         tvc = TBVC;
       }
       moverSemaforo1Verde();
@@ -332,17 +329,32 @@ void MEF_SM2()
     {
       int NSET = getNSEC2();
       if (NSET >= 2) {
-        Serial.println("Alto trafico tunel");
+        line3 = "Alto trafico tunel";
+        Serial.println(line3);
         Serial.println("t");
+        printInLCDLine();
+      } else {
+        line3 = "";
+        printInLCDLine();
       }
       calculateCo2();
-      if (co2 > 15500) {
-        Serial.println("Alto CO2 en tunel");
+      line2 = "Co2: " + String(co2);
+      printInLCDLine();
+      if (co2 > 1000) {
+        line4 = "Alto CO2 en tunel";
+        Serial.println(line4);
+        printInLCDLine();
         tvt = TBVT * 2;
       } else if (NSET >= 2) {
         tvt = NSET * TBVT;
       } else {
         tvt = TBVT;
+      }
+
+      if (co2 <= 1000) {
+        line4 = "";
+        printInLCDLine();
+        
       }
       TA = 0;
       eSemaforo2 = VERDE;
@@ -367,7 +379,6 @@ void MEF_SM2()
 #define WAIT_CLIMA 1
 int eClima = GET_CLIMA;
 unsigned long trcl = 0;
-String temp;
 
 void MEF_CLIMA()
 {
@@ -376,17 +387,18 @@ void MEF_CLIMA()
   case GET_CLIMA:
     Serial.println("w");
     delay(100);
-    temp = "";
+    line1 = "";
     while (Serial.available())
     {
-      temp += (char)Serial.read();
+      line1 += (char)Serial.read();
     }
-    printInLCDLine1("Temperatura: " + temp);
+    
+    printInLCDLine();
     eClima = WAIT_CLIMA;
     trcl = millis();
     break;
   case WAIT_CLIMA:
-    if (millis() - trcl > 10000)
+    if (millis() - trcl > 30000)
     {
       eClima = GET_CLIMA;
     }
