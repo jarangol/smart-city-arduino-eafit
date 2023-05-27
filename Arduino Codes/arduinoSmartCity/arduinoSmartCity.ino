@@ -130,81 +130,6 @@ int getNSEC2()
   return 0;
 }
 
-void checkDigitalIn()
-{ // Subroutine to check all digital inputs
-  if (digitalRead(P1) == HIGH)
-  {
-    Serial.println("P1: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(P1) == HIGH)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(P2) == HIGH)
-  {
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(P2) == HIGH)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(CNY1) == LOW)
-  {
-    Serial.println("CNY1: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(CNY1) == LOW)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(CNY2) == LOW)
-  {
-    Serial.println("CNY2: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(CNY2) == LOW)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(CNY3) == LOW)
-  {
-    Serial.println("CNY3: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(CNY3) == LOW)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(CNY4) == LOW)
-  {
-    Serial.println("CNY4: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(CNY4) == LOW)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(CNY4) == LOW)
-  {
-    Serial.println("CNY4: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(CNY4) == LOW)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(CNY5) == LOW)
-  {
-    Serial.println("CNY5: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(CNY5) == LOW)
-    {
-    } // Debouncing
-  }
-  if (digitalRead(CNY6) == LOW)
-  {
-    Serial.println("CNY6: ON");
-    delay(300); // Debouncing for buttons using delay of 300 ms
-    while (digitalRead(CNY6) == LOW)
-    {
-    } // Debouncing
-  }
-}
-
 /////////////////////////////////////////////////// MEF SM1
 #define VERDE 0
 #define AMARILLO 1
@@ -406,14 +331,17 @@ void MEF_SM2()
     else if (TA)
     {
       int NSET = getNSEC2();
-      if (NSET >= 2)
-      {
-        tvt = NSET * TBVT;
+      if (NSET >= 2) {
         Serial.println("Alto trafico tunel");
         Serial.println("t");
       }
-      else
-      {
+      calculateCo2();
+      if (co2 > 15500) {
+        Serial.println("Alto CO2 en tunel");
+        tvt = TBVT * 2;
+      } else if (NSET >= 2) {
+        tvt = NSET * TBVT;
+      } else {
         tvt = TBVT;
       }
       TA = 0;
@@ -448,10 +376,10 @@ void MEF_CLIMA()
   case GET_CLIMA:
     Serial.println("w");
     delay(100);
-    temp = ""; // Clear the string for the new data
+    temp = "";
     while (Serial.available())
     {
-      temp += (char)Serial.read(); // Concatinate each charageter onto                                   // the String Object
+      temp += (char)Serial.read();
     }
     printInLCDLine1("Temperatura: " + temp);
     eClima = WAIT_CLIMA;
